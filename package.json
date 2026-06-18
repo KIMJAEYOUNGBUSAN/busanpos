@@ -1,0 +1,10 @@
+{
+  "name": "challengeops-mvp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Challenge manager MVP with a Node.js JSON-backed server.",
+  "scripts": {
+    "start": "node server.js",
+    "check": "node --check app.js && node --check server.js"
+  }
+}
