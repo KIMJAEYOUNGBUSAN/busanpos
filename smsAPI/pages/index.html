@@ -71,6 +71,12 @@
       cursor: pointer;
       margin-top: 12px;
     }
+    button.secondary {
+      background: #475569;
+    }
+    button.success {
+      background: #15803d;
+    }
     code, pre {
       background: #eef2ff;
       border-radius: 6px;
@@ -90,6 +96,11 @@
     .warn {
       background: #fff7ed;
       border-color: #fed7aa;
+    }
+    .steps {
+      margin: 0;
+      padding-left: 20px;
+      line-height: 1.7;
     }
   </style>
 </head>
@@ -120,6 +131,8 @@
       <button onclick="saveConfig()">저장</button>
       <button onclick="health()">연결 확인</button>
       <button onclick="openApiSpec()">OpenAPI 보기</button>
+      <button class="secondary" onclick="fillSample()">샘플값 채우기</button>
+      <button class="success" onclick="demoResponse()">데모 응답 보기</button>
     </section>
 
     <div class="grid">
@@ -166,7 +179,7 @@
 
     <section>
       <h2>API 예시</h2>
-      <pre>POST /v1/messages/sms
+      <pre id="apiExample">POST /v1/messages/sms
 Authorization: Bearer 자체_API_KEY
 Content-Type: application/json
 
@@ -176,6 +189,18 @@ Content-Type: application/json
   "text": "[서비스명] 인증번호는 123456입니다.",
   "clientRequestId": "signup-10001"
 }</pre>
+      <button onclick="copyExample()">예시 복사</button>
+    </section>
+
+    <section>
+      <h2>테스트 순서</h2>
+      <ol class="steps">
+        <li>백엔드를 Render, Railway, Fly.io 또는 VPS에 배포합니다.</li>
+        <li>백엔드 관리자 화면에서 솔라피와 Resend 키를 저장합니다.</li>
+        <li>API 클라이언트를 만들고 자체 API Key를 복사합니다.</li>
+        <li>이 화면에 백엔드 URL과 자체 API Key를 입력한 뒤 연결 확인을 누릅니다.</li>
+        <li>문자 또는 이메일 테스트 발송을 실행합니다.</li>
+      </ol>
     </section>
   </main>
 
@@ -197,6 +222,43 @@ Content-Type: application/json
       localStorage.setItem("smsapi.baseUrl", baseUrlInput.value.replace(/\/$/, ""));
       localStorage.setItem("smsapi.apiKey", apiKeyInput.value);
       show("저장했습니다.");
+    }
+
+    function fillSample() {
+      if (!baseUrlInput.value) baseUrlInput.value = "https://your-smsapi.onrender.com";
+      if (!apiKeyInput.value) apiKeyInput.value = "smsapi_your_api_key";
+      document.getElementById("smsTo").value = "01012345678";
+      document.getElementById("smsFrom").value = "0212345678";
+      document.getElementById("smsText").value = "[smsAPI Agent] 테스트 문자입니다.";
+      document.getElementById("smsRequestId").value = "pages-sms-" + Date.now();
+      document.getElementById("emailTo").value = "customer@example.com";
+      document.getElementById("emailFrom").value = "noreply@example.com";
+      document.getElementById("emailSubject").value = "smsAPI Agent 테스트";
+      document.getElementById("emailHtml").value = "<p>이메일 발송 테스트입니다.</p>";
+      document.getElementById("emailRequestId").value = "pages-email-" + Date.now();
+      show("샘플값을 채웠습니다. 실제 발송 전 백엔드 URL과 API Key를 운영 값으로 바꿔 주세요.");
+    }
+
+    function demoResponse() {
+      const id = "demo_msg_" + Date.now();
+      document.getElementById("messageId").value = id;
+      show({
+        ok: true,
+        messageId: id,
+        status: "sent",
+        providerMessageId: "demo_provider_message",
+        note: "데모 응답입니다. 실제 발송은 백엔드 URL과 자체 API Key를 입력한 뒤 실행됩니다."
+      });
+    }
+
+    async function copyExample() {
+      const text = document.getElementById("apiExample").textContent;
+      try {
+        await navigator.clipboard.writeText(text);
+        show("API 예시를 복사했습니다.");
+      } catch {
+        show(text);
+      }
     }
 
     async function request(path, options = {}) {
