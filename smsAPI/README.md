@@ -8,6 +8,15 @@
 node server.js
 ```
 
+## 검증
+
+```bash
+npm run check
+npm run smoke
+```
+
+`npm run smoke`는 임시 데이터 폴더와 테스트 모드를 사용해 관리자 로그인, OpenAPI 문서, API 클라이언트 생성, 문자/이메일 발송, 상태 조회를 확인합니다.
+
 브라우저에서 접속:
 
 ```text

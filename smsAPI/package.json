@@ -5,7 +5,8 @@
   "description": "Unified Solapi SMS and Resend email API agent.",
   "scripts": {
     "start": "node server.js",
-    "check": "node --check server.js"
+    "check": "node --check server.js && node --check scripts/smoke-test.js && node --check examples/javascript.js",
+    "smoke": "node scripts/smoke-test.js"
   },
   "engines": {
     "node": ">=18"
