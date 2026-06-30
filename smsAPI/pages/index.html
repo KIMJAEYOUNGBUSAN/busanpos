@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>smsAPI Agent 사용 페이지</title>
+  <style>
+    :root {
+      font-family: Arial, "Malgun Gothic", sans-serif;
+      color: #172033;
+      background: #f5f7fb;
+    }
+    body {
+      margin: 0;
+    }
+    header {
+      background: #101827;
+      color: white;
+      padding: 22px;
+    }
+    main {
+      width: min(1080px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 22px 0 40px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 24px;
+    }
+    h2 {
+      margin: 0 0 14px;
+      font-size: 18px;
+    }
+    section {
+      background: white;
+      border: 1px solid #dbe3ef;
+      border-radius: 8px;
+      padding: 18px;
+      margin: 16px 0;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    label {
+      display: block;
+      font-weight: 700;
+      font-size: 13px;
+      margin: 10px 0 5px;
+    }
+    input, textarea {
+      width: 100%;
+      box-sizing: border-box;
+      border: 1px solid #c7d2e3;
+      border-radius: 6px;
+      padding: 9px 10px;
+      font-size: 14px;
+    }
+    textarea {
+      min-height: 90px;
+      resize: vertical;
+    }
+    button {
+      border: 0;
+      border-radius: 6px;
+      background: #2563eb;
+      color: white;
+      padding: 10px 14px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 12px;
+    }
+    code, pre {
+      background: #eef2ff;
+      border-radius: 6px;
+    }
+    code {
+      padding: 2px 5px;
+    }
+    pre {
+      overflow: auto;
+      padding: 12px;
+      min-height: 80px;
+    }
+    .muted {
+      color: #64748b;
+      font-size: 13px;
+    }
+    .warn {
+      background: #fff7ed;
+      border-color: #fed7aa;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>smsAPI Agent</h1>
+    <p>GitHub Pages에서 쓰는 API 안내 및 테스트 페이지</p>
+  </header>
+  <main>
+    <section class="warn">
+      <h2>배포 구조</h2>
+      <p>GitHub Pages는 정적 페이지 전용입니다. 이 화면은 API 사용과 테스트를 돕는 페이지이고, 실제 문자/이메일 발송 백엔드는 Render, Railway, Fly.io 같은 Node 호스팅에 배포해야 합니다.</p>
+      <p class="muted">브라우저 테스트용 API Key는 이 기기에만 저장됩니다. 운영 서비스에서는 서버에서 자체 API를 호출하는 방식을 권장합니다.</p>
+    </section>
+
+    <section>
+      <h2>연결 설정</h2>
+      <div class="grid">
+        <div>
+          <label>백엔드 URL</label>
+          <input id="baseUrl" placeholder="https://your-smsapi.onrender.com">
+        </div>
+        <div>
+          <label>자체 API Key</label>
+          <input id="apiKey" type="password" placeholder="smsapi_...">
+        </div>
+      </div>
+      <button onclick="saveConfig()">저장</button>
+      <button onclick="health()">연결 확인</button>
+    </section>
+
+    <div class="grid">
+      <section>
+        <h2>문자 테스트</h2>
+        <label>수신번호</label>
+        <input id="smsTo" placeholder="01012345678">
+        <label>발신번호</label>
+        <input id="smsFrom" placeholder="0212345678">
+        <label>내용</label>
+        <textarea id="smsText">[smsAPI Agent] 테스트 문자입니다.</textarea>
+        <label>요청 ID</label>
+        <input id="smsRequestId">
+        <button onclick="sendSms()">문자 발송</button>
+      </section>
+
+      <section>
+        <h2>이메일 테스트</h2>
+        <label>수신 이메일</label>
+        <input id="emailTo" placeholder="customer@example.com">
+        <label>발신 이메일</label>
+        <input id="emailFrom" placeholder="noreply@example.com">
+        <label>제목</label>
+        <input id="emailSubject" value="smsAPI Agent 테스트">
+        <label>HTML</label>
+        <textarea id="emailHtml"><p>이메일 발송 테스트입니다.</p></textarea>
+        <label>요청 ID</label>
+        <input id="emailRequestId">
+        <button onclick="sendEmail()">이메일 발송</button>
+      </section>
+    </div>
+
+    <section>
+      <h2>상태 조회</h2>
+      <label>Message ID</label>
+      <input id="messageId" placeholder="msg_... 또는 email_...">
+      <button onclick="getMessage()">조회</button>
+    </section>
+
+    <section>
+      <h2>응답</h2>
+      <pre id="output">아직 요청하지 않았습니다.</pre>
+    </section>
+
+    <section>
+      <h2>API 예시</h2>
+      <pre>POST /v1/messages/sms
+Authorization: Bearer 자체_API_KEY
+Content-Type: application/json
+
+{
+  "to": "01012345678",
+  "from": "0212345678",
+  "text": "[서비스명] 인증번호는 123456입니다.",
+  "clientRequestId": "signup-10001"
+}</pre>
+    </section>
+  </main>
+
+  <script>
+    const baseUrlInput = document.getElementById("baseUrl");
+    const apiKeyInput = document.getElementById("apiKey");
+    const output = document.getElementById("output");
+
+    baseUrlInput.value = localStorage.getItem("smsapi.baseUrl") || "";
+    apiKeyInput.value = localStorage.getItem("smsapi.apiKey") || "";
+    document.getElementById("smsRequestId").value = "pages-sms-" + Date.now();
+    document.getElementById("emailRequestId").value = "pages-email-" + Date.now();
+
+    function show(data) {
+      output.textContent = typeof data === "string" ? data : JSON.stringify(data, null, 2);
+    }
+
+    function saveConfig() {
+      localStorage.setItem("smsapi.baseUrl", baseUrlInput.value.replace(/\/$/, ""));
+      localStorage.setItem("smsapi.apiKey", apiKeyInput.value);
+      show("저장했습니다.");
+    }
+
+    async function request(path, options = {}) {
+      const baseUrl = baseUrlInput.value.replace(/\/$/, "");
+      const response = await fetch(baseUrl + path, {
+        ...options,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + apiKeyInput.value,
+          ...(options.headers || {})
+        }
+      });
+      const data = await response.json();
+      if (!response.ok) throw data;
+      return data;
+    }
+
+    async function health() {
+      try {
+        const baseUrl = baseUrlInput.value.replace(/\/$/, "");
+        const response = await fetch(baseUrl + "/health");
+        show(await response.json());
+      } catch (error) {
+        show(error);
+      }
+    }
+
+    async function sendSms() {
+      try {
+        const data = await request("/v1/messages/sms", {
+          method: "POST",
+          body: JSON.stringify({
+            to: document.getElementById("smsTo").value,
+            from: document.getElementById("smsFrom").value,
+            text: document.getElementById("smsText").value,
+            clientRequestId: document.getElementById("smsRequestId").value
+          })
+        });
+        document.getElementById("messageId").value = data.messageId || "";
+        show(data);
+      } catch (error) {
+        show(error);
+      }
+    }
+
+    async function sendEmail() {
+      try {
+        const data = await request("/v1/messages/email", {
+          method: "POST",
+          body: JSON.stringify({
+            to: document.getElementById("emailTo").value,
+            from: document.getElementById("emailFrom").value,
+            subject: document.getElementById("emailSubject").value,
+            html: document.getElementById("emailHtml").value,
+            clientRequestId: document.getElementById("emailRequestId").value
+          })
+        });
+        document.getElementById("messageId").value = data.messageId || "";
+        show(data);
+      } catch (error) {
+        show(error);
+      }
+    }
+
+    async function getMessage() {
+      try {
+        show(await request("/v1/messages/" + encodeURIComponent(document.getElementById("messageId").value)));
+      } catch (error) {
+        show(error);
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "name": "smsapi-agent",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Unified Solapi SMS and Resend email API agent.",
+  "scripts": {
+    "start": "node server.js",
+    "check": "node --check server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
