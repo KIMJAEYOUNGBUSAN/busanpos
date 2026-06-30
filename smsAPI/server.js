@@ -13,11 +13,18 @@ const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || "")
   .split(",")
   .map((origin) => origin.trim())
   .filter(Boolean);
+let providerEnvApplied = false;
 
 const PUBLIC_ROUTES = new Set(["/admin/login", "/health"]);
 
 function now() {
   return new Date().toISOString();
+}
+
+function envFlag(name, defaultValue) {
+  const value = process.env[name];
+  if (value == null || value === "") return defaultValue;
+  return ["1", "true", "yes", "on"].includes(String(value).toLowerCase());
 }
 
 function ensureDb() {
@@ -50,6 +57,10 @@ function ensureDb() {
       sessions: []
     });
   }
+  if (!providerEnvApplied) {
+    applyProviderEnv();
+    providerEnvApplied = true;
+  }
 }
 
 function readDb() {
@@ -59,6 +70,43 @@ function readDb() {
 
 function writeDb(db) {
   fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2), "utf8");
+}
+
+function applyProviderEnv() {
+  const db = JSON.parse(fs.readFileSync(DB_PATH, "utf8"));
+  let changed = false;
+
+  if (process.env.SOLAPI_API_KEY || process.env.SOLAPI_API_SECRET) {
+    const existingConfig = decryptJson(db.providerSettings.solapi.encryptedConfig);
+    const apiKey = process.env.SOLAPI_API_KEY || existingConfig.apiKey || "";
+    const apiSecret = process.env.SOLAPI_API_SECRET || existingConfig.apiSecret || "";
+    db.providerSettings.solapi = {
+      enabled: envFlag("SOLAPI_ENABLED", db.providerSettings.solapi.enabled),
+      testMode: envFlag("SOLAPI_TEST_MODE", db.providerSettings.solapi.testMode),
+      defaultFrom: process.env.SOLAPI_DEFAULT_FROM || db.providerSettings.solapi.defaultFrom || "",
+      maskedKey: maskSecret(apiKey),
+      encryptedConfig: encryptJson({ apiKey, apiSecret }),
+      updatedAt: now()
+    };
+    changed = true;
+  }
+
+  if (process.env.RESEND_API_KEY) {
+    const apiKey = process.env.RESEND_API_KEY;
+    db.providerSettings.resend = {
+      enabled: envFlag("RESEND_ENABLED", db.providerSettings.resend.enabled),
+      testMode: envFlag("RESEND_TEST_MODE", db.providerSettings.resend.testMode),
+      defaultFrom: process.env.RESEND_DEFAULT_FROM || db.providerSettings.resend.defaultFrom || "",
+      defaultFromName: process.env.RESEND_DEFAULT_FROM_NAME || db.providerSettings.resend.defaultFromName || "",
+      replyTo: process.env.RESEND_REPLY_TO || db.providerSettings.resend.replyTo || "",
+      maskedKey: maskSecret(apiKey),
+      encryptedConfig: encryptJson({ apiKey }),
+      updatedAt: now()
+    };
+    changed = true;
+  }
+
+  if (changed) writeDb(db);
 }
 
 function keyBytes() {

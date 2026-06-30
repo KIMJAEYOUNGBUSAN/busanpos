@@ -65,6 +65,15 @@ ADMIN_PASSWORD=강력한_관리자_비밀번호
 MASTER_KEY=32자_이상의_긴_랜덤_문자열
 DATA_DIR=/var/data
 ALLOWED_ORIGINS=https://YOUR_GITHUB_USERNAME.github.io
+SOLAPI_API_KEY=솔라피_API_KEY
+SOLAPI_API_SECRET=솔라피_API_SECRET
+SOLAPI_DEFAULT_FROM=등록된_발신번호
+SOLAPI_ENABLED=false
+SOLAPI_TEST_MODE=true
+RESEND_API_KEY=Resend_API_KEY
+RESEND_DEFAULT_FROM=noreply@example.com
+RESEND_ENABLED=false
+RESEND_TEST_MODE=true
 ```
 
 `ALLOWED_ORIGINS`에는 실제 GitHub Pages 주소를 입력합니다. 예시는 다음과 같습니다.
@@ -89,6 +98,8 @@ https://백엔드주소/
 - Resend API Key
 - Resend 기본 발신 이메일
 - 자체 API 클라이언트
+
+환경변수로 `SOLAPI_API_KEY`, `SOLAPI_API_SECRET`, `RESEND_API_KEY`를 넣으면 서버 시작 시 관리자 설정에 자동 반영됩니다. 운영 발송 전에는 `SOLAPI_TEST_MODE=false`, `RESEND_TEST_MODE=false`로 바꾸고, 각 발송사를 `*_ENABLED=true`로 설정합니다.
 
 ## 5. Pages 테스트 화면 연결
 

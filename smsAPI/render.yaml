@@ -26,3 +26,25 @@ services:
         sync: false
       - key: ALLOWED_ORIGINS
         sync: false
+      - key: SOLAPI_API_KEY
+        sync: false
+      - key: SOLAPI_API_SECRET
+        sync: false
+      - key: SOLAPI_DEFAULT_FROM
+        sync: false
+      - key: SOLAPI_ENABLED
+        value: false
+      - key: SOLAPI_TEST_MODE
+        value: true
+      - key: RESEND_API_KEY
+        sync: false
+      - key: RESEND_DEFAULT_FROM
+        sync: false
+      - key: RESEND_DEFAULT_FROM_NAME
+        sync: false
+      - key: RESEND_REPLY_TO
+        sync: false
+      - key: RESEND_ENABLED
+        value: false
+      - key: RESEND_TEST_MODE
+        value: true
