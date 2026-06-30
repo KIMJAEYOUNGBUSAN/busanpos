@@ -90,3 +90,17 @@ PowerShell 실행 정책 때문에 `npm` 명령이 막히는 환경에서는 `np
 ## 주의
 
 현재 버전은 실제 PG 결제, 자동 송금, 원천징수 계산, 외부 플랫폼 API 자동 검수를 제공하지 않습니다. PRD 기준에 따라 1차 제품은 수동 결제 상태 관리, 수동 지급 상태 관리, 검수/랭킹/정산 보조에 집중합니다.
+
+## smsAPI Agent
+
+`smsAPI/` 폴더에는 솔라피 문자 발송과 Resend 이메일 발송을 하나의 자체 API로 묶는 발송 에이전트가 포함되어 있습니다.
+
+GitHub Pages 테스트 화면은 `docs/` 폴더에 준비되어 있습니다. 저장소에서 아래처럼 한 번만 설정하면 됩니다.
+
+```text
+Settings > Pages > Source: Deploy from a branch
+Branch: master
+Folder: /docs
+```
+
+Pages 주소가 생성되면 해당 화면에서 백엔드 URL과 자체 API Key를 입력해 문자/이메일 발송을 테스트할 수 있습니다. 실제 Node 백엔드는 GitHub Pages에서 실행되지 않으므로 Render, Railway, Fly.io, VPS 같은 별도 Node 호스팅에 배포해야 합니다.
