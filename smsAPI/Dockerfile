@@ -8,6 +8,7 @@ COPY development-plan.md ./
 
 ENV NODE_ENV=production
 ENV PORT=3100
+ENV DATA_DIR=/app/data
 
 EXPOSE 3100
 

@@ -7,7 +7,7 @@ const PORT = Number(process.env.PORT || 3100);
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@smsapi.local";
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "1234";
 const MASTER_KEY = process.env.MASTER_KEY || "dev-only-change-this-master-key";
-const DATA_DIR = path.join(__dirname, "data");
+const DATA_DIR = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : path.join(__dirname, "data");
 const DB_PATH = path.join(DATA_DIR, "smsapi-db.json");
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || "")
   .split(",")

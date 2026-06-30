@@ -53,6 +53,7 @@ Render 기준 설정:
 - Root Directory: `smsAPI`
 - Start Command: `node server.js`
 - Health Check Path: `/health`
+- Persistent Disk: `/var/data`
 
 ## 3. 운영 환경변수
 
@@ -62,6 +63,7 @@ Render 기준 설정:
 ADMIN_EMAIL=owner@example.com
 ADMIN_PASSWORD=강력한_관리자_비밀번호
 MASTER_KEY=32자_이상의_긴_랜덤_문자열
+DATA_DIR=/var/data
 ALLOWED_ORIGINS=https://YOUR_GITHUB_USERNAME.github.io
 ```
 

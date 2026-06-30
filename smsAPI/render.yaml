@@ -1,17 +1,23 @@
 services:
   - type: web
     name: smsapi-agent
-    env: node
-    plan: free
+    runtime: node
+    plan: starter
     rootDir: smsAPI
     buildCommand: ""
     startCommand: node server.js
     autoDeploy: true
+    disk:
+      name: smsapi-data
+      mountPath: /var/data
+      sizeGB: 1
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 3100
+      - key: DATA_DIR
+        value: /var/data
       - key: ADMIN_EMAIL
         sync: false
       - key: ADMIN_PASSWORD

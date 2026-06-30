@@ -25,6 +25,7 @@ http://localhost:3100
 set ADMIN_EMAIL=owner@example.com
 set ADMIN_PASSWORD=strong-password
 set MASTER_KEY=change-this-long-random-secret
+set DATA_DIR=data
 node server.js
 ```
 
@@ -101,5 +102,7 @@ ALLOWED_ORIGINS=https://YOUR_GITHUB_USERNAME.github.io
 `ALLOWED_ORIGINS`에는 GitHub Pages 주소를 넣습니다. 여러 주소는 쉼표로 구분합니다.
 
 Render를 사용할 경우 `render.yaml`을 참고해 Web Service로 배포할 수 있습니다. Docker 기반 배포가 필요한 환경에서는 `Dockerfile`을 사용합니다.
+
+운영 배포에서는 `DATA_DIR`를 영구 저장소 경로로 지정해야 합니다. JSON DB 파일은 이 경로 아래 `smsapi-db.json`으로 저장됩니다.
 
 백엔드 배포가 끝나면 GitHub Pages 화면에서 백엔드 URL과 자체 API Key를 입력해 문자/이메일 발송을 테스트합니다.
