@@ -28,12 +28,31 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Check Pages status
+        id: pages_status
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          status=$(curl -s -o /tmp/pages.json -w "%{http_code}" \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${REPOSITORY}/pages")
+          if [ "$status" = "200" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::GitHub Pages is not enabled yet. Open Settings > Pages and select GitHub Actions, then rerun this workflow."
+          fi
       - name: Setup Pages
+        if: steps.pages_status.outputs.enabled == 'true'
         uses: actions/configure-pages@v5
       - name: Upload artifact
+        if: steps.pages_status.outputs.enabled == 'true'
         uses: actions/upload-pages-artifact@v3
         with:
           path: smsAPI/pages
       - name: Deploy to GitHub Pages
+        if: steps.pages_status.outputs.enabled == 'true'
         id: deployment
         uses: actions/deploy-pages@v4
