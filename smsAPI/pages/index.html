@@ -119,6 +119,7 @@
       </div>
       <button onclick="saveConfig()">저장</button>
       <button onclick="health()">연결 확인</button>
+      <button onclick="openApiSpec()">OpenAPI 보기</button>
     </section>
 
     <div class="grid">
@@ -221,6 +222,15 @@ Content-Type: application/json
       } catch (error) {
         show(error);
       }
+    }
+
+    function openApiSpec() {
+      const baseUrl = baseUrlInput.value.replace(/\/$/, "");
+      if (!baseUrl) {
+        show("백엔드 URL을 먼저 입력해 주세요.");
+        return;
+      }
+      window.open(baseUrl + "/openapi.json", "_blank", "noopener");
     }
 
     async function sendSms() {

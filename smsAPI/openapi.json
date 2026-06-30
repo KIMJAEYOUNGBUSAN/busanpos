@@ -1,0 +1,269 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "smsAPI Agent Public API",
+    "version": "0.1.0",
+    "description": "Unified SMS and email delivery API for Solapi and Resend integrations."
+  },
+  "servers": [
+    {
+      "url": "https://your-smsapi-backend.example.com",
+      "description": "Production backend"
+    },
+    {
+      "url": "http://localhost:3100",
+      "description": "Local development"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Health check",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Service is available"
+          }
+        }
+      }
+    },
+    "/v1/messages/sms": {
+      "post": {
+        "summary": "Send an SMS/LMS/MMS message",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SmsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Message accepted or sent",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SendResponse"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/messages/email": {
+      "post": {
+        "summary": "Send an email message",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmailRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Email accepted or sent",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SendResponse"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/messages/{messageId}": {
+      "get": {
+        "summary": "Get delivery status",
+        "parameters": [
+          {
+            "name": "messageId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Message status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageStatusResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Message not found"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "smsapi_api_key"
+      }
+    },
+    "schemas": {
+      "SmsRequest": {
+        "type": "object",
+        "required": ["to", "text"],
+        "properties": {
+          "to": {
+            "type": "string",
+            "examples": ["01012345678"]
+          },
+          "from": {
+            "type": "string",
+            "examples": ["0212345678"]
+          },
+          "text": {
+            "type": "string",
+            "examples": ["[서비스명] 인증번호는 123456입니다."]
+          },
+          "type": {
+            "type": "string",
+            "enum": ["SMS", "LMS", "MMS"],
+            "default": "SMS"
+          },
+          "clientRequestId": {
+            "type": "string",
+            "description": "Unique idempotency key from the caller"
+          }
+        }
+      },
+      "EmailRequest": {
+        "type": "object",
+        "required": ["to", "subject"],
+        "properties": {
+          "to": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "email"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "format": "email"
+                }
+              }
+            ]
+          },
+          "from": {
+            "type": "string",
+            "format": "email"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "html": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "replyTo": {
+            "type": "string",
+            "format": "email"
+          },
+          "clientRequestId": {
+            "type": "string",
+            "description": "Unique idempotency key from the caller"
+          }
+        }
+      },
+      "SendResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "messageId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "examples": ["sent"]
+          },
+          "providerMessageId": {
+            "type": "string"
+          }
+        }
+      },
+      "MessageStatusResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "object"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "const": false
+          },
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -47,6 +47,18 @@ node server.js
 
 ## 자체 API 예시
 
+OpenAPI 문서는 백엔드 실행 후 다음 주소에서 확인할 수 있습니다.
+
+```text
+http://localhost:3100/openapi.json
+```
+
+연동 예제:
+
+- JavaScript: `examples/javascript.js`
+- PHP: `examples/php.php`
+- Python: `examples/python.py`
+
 문자 발송:
 
 ```bash

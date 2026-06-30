@@ -149,6 +149,17 @@ function html(res, body, status = 200) {
   res.end(body);
 }
 
+function sendFile(res, filePath, contentType) {
+  fs.readFile(filePath, (error, body) => {
+    if (error) {
+      json(res, 404, { ok: false, error: { code: "NOT_FOUND", message: "파일을 찾을 수 없습니다." } });
+      return;
+    }
+    res.writeHead(200, { "Content-Type": contentType, ...(res.corsHeaders || {}) });
+    res.end(body);
+  });
+}
+
 function notFound(res) {
   json(res, 404, { ok: false, error: { code: "NOT_FOUND", message: "요청한 주소를 찾을 수 없습니다." } });
 }
@@ -834,6 +845,7 @@ async function router(req, res) {
     }
     if (req.method === "GET" && pathname === "/") return html(res, adminPage());
     if (req.method === "GET" && pathname === "/health") return json(res, 200, { ok: true, service: "smsAPI Agent", time: now() });
+    if (req.method === "GET" && pathname === "/openapi.json") return sendFile(res, path.join(__dirname, "openapi.json"), "application/json; charset=utf-8");
     if (pathname.startsWith("/admin/")) return handleAdmin(req, res, pathname);
     if (pathname.startsWith("/v1/")) return handlePublicApi(req, res, pathname);
     if (PUBLIC_ROUTES.has(pathname)) return notFound(res);
