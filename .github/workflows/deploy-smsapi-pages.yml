@@ -7,6 +7,7 @@ on:
       - main
     paths:
       - "smsAPI/pages/**"
+      - "docs/**"
       - ".github/workflows/deploy-smsapi-pages.yml"
   workflow_dispatch:
 
@@ -40,19 +41,43 @@ jobs:
             "https://api.github.com/repos/${REPOSITORY}/pages")
           if [ "$status" = "200" ]; then
             echo "enabled=true" >> "$GITHUB_OUTPUT"
+            build_type=$(node -e "const fs=require('fs'); const p=JSON.parse(fs.readFileSync('/tmp/pages.json','utf8')); console.log(p.build_type || (p.source ? 'legacy' : 'unknown'))")
+            echo "build_type=${build_type}" >> "$GITHUB_OUTPUT"
+            if [ "$build_type" = "workflow" ]; then
+              echo "deploy_with_actions=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "deploy_with_actions=false" >> "$GITHUB_OUTPUT"
+              echo "::notice::GitHub Pages is already enabled with branch-based publishing. The /docs folder will be served by GitHub Pages."
+            fi
           else
-            echo "enabled=false" >> "$GITHUB_OUTPUT"
-            echo "::warning::GitHub Pages is not enabled yet. Open Settings > Pages and select GitHub Actions, then rerun this workflow."
+            create_status=$(curl -s -o /tmp/pages-create.json -w "%{http_code}" \
+              -X POST \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              -H "Content-Type: application/json" \
+              "https://api.github.com/repos/${REPOSITORY}/pages" \
+              -d '{"source":{"branch":"master","path":"/docs"}}')
+            if [ "$create_status" = "201" ] || [ "$create_status" = "202" ]; then
+              echo "enabled=true" >> "$GITHUB_OUTPUT"
+              echo "build_type=legacy" >> "$GITHUB_OUTPUT"
+              echo "deploy_with_actions=false" >> "$GITHUB_OUTPUT"
+              echo "::notice::GitHub Pages was enabled with master /docs as the publishing source."
+            else
+              echo "enabled=false" >> "$GITHUB_OUTPUT"
+              echo "deploy_with_actions=false" >> "$GITHUB_OUTPUT"
+              echo "::warning::GitHub Pages is not enabled yet, and automatic setup returned HTTP ${create_status}. Open Settings > Pages and choose Deploy from a branch, master, /docs."
+              cat /tmp/pages-create.json || true
+            fi
           fi
       - name: Setup Pages
-        if: steps.pages_status.outputs.enabled == 'true'
+        if: steps.pages_status.outputs.deploy_with_actions == 'true'
         uses: actions/configure-pages@v5
       - name: Upload artifact
-        if: steps.pages_status.outputs.enabled == 'true'
+        if: steps.pages_status.outputs.deploy_with_actions == 'true'
         uses: actions/upload-pages-artifact@v3
         with:
           path: smsAPI/pages
       - name: Deploy to GitHub Pages
-        if: steps.pages_status.outputs.enabled == 'true'
+        if: steps.pages_status.outputs.deploy_with_actions == 'true'
         id: deployment
         uses: actions/deploy-pages@v4
